@@ -1,0 +1,138 @@
+// src/components/Chat/ChatInterface.jsx
+import React, { useEffect, useState } from "react";
+import { medicalVQAService } from "../../services/medicalVQAService";
+import ChatHistory from "./ChatHistory";
+import MessageList from "./MessageList";
+import MessageInput from "./MessageInput";
+import Header from "../Layout/Header.jsx";
+
+function toUIMessagesFromSession(fullSession) {
+    const turns = fullSession?.conversation_history || [];
+    const ui = [];
+
+    for (const t of turns) {
+        if (t?.user) ui.push({ role: "user", content: t.user });
+        if (t?.assistant) ui.push({ role: "assistant", content: t.assistant });
+    }
+    return ui;
+}
+
+export default function ChatInterface() {
+    const [sessionId, setSessionId] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    const loadHistory = async () => {
+        try {
+            const data = await medicalVQAService.getChatHistory();
+            setHistory(data?.chats || []);
+        } catch (e) {
+            console.error("getChatHistory error:", e);
+        }
+    };
+
+    useEffect(() => {
+        loadHistory();
+    }, []);
+
+    const handleSend = async ({ text, imageFile }) => {
+        setError("");
+
+        if (!text && !imageFile) {
+            setError("Please enter a message or upload an image.");
+            return;
+        }
+
+        // optimistic user message
+        setMessages((prev) => [
+            ...prev,
+            { role: "user", content: text || "[Image uploaded]" },
+        ]);
+
+        setLoading(true);
+        try {
+            let res;
+            if (!sessionId) {
+                res = await medicalVQAService.startNewChat(text, imageFile);
+                setSessionId(res.session_id);
+            } else {
+                res = await medicalVQAService.sendMessage(sessionId, text, imageFile);
+            }
+
+            // simplest: append assistant response directly
+            setMessages((prev) => [
+                ...prev,
+                { role: "assistant", content: res?.response || "(No response)" },
+            ]);
+
+            // optional: if you want perfect sync with backend history, replace messages:
+            // setMessages(toUIMessagesFromSession(res.full_session));
+
+            await loadHistory();
+        } catch (err) {
+            console.error("send error:", err);
+            const detail = err?.response?.data?.detail;
+            setError(detail || "Failed to send message.");
+
+            // rollback optimistic message if you want:
+            // setMessages((prev) => prev.slice(0, -1));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSelectSession = async (sid) => {
+        setError("");
+        setLoading(true);
+        try {
+            const session = await medicalVQAService.getSession(sid);
+            setSessionId(sid);
+            setMessages(toUIMessagesFromSession(session));
+        } catch (err) {
+            console.error("load session error:", err);
+            setError("Failed to load session.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleNewChat = () => {
+        setSessionId(null);
+        setMessages([]);
+        setError("");
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+            <Header />
+
+            <div className="flex flex-1">
+                <ChatHistory
+                    chats={history}
+                    activeSessionId={sessionId}
+                    onSelectSession={handleSelectSession}
+                    onNewChat={handleNewChat}
+                />
+
+                <div className="flex-1 flex flex-col">
+                    {error && (
+                        <div className="p-3 bg-red-500/10 border-b border-red-500 text-red-400">
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="flex-1 overflow-auto">
+                        <MessageList messages={messages} />
+                    </div>
+
+                    <div className="border-t border-gray-800">
+                        <MessageInput onSend={handleSend} loading={loading} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+}

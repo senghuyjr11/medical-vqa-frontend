@@ -22,22 +22,16 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
-        const status = error?.response?.status;
-        const url = error?.config?.url || "";
+        const isAuthLogin = error.config?.url?.includes("/auth/login");
 
-        const isAuthEndpoint =
-            url.includes("/auth/login") || url.includes("/auth/register");
-
-        if (status === 401 && !isAuthEndpoint) {
+        if (error.response?.status === 401 && !isAuthLogin) {
             localStorage.removeItem("token");
             localStorage.removeItem("username");
-
-            // better than href: doesn't add history entry
-            window.location.replace("/login");
+            window.location.href = "/login";
         }
-
         return Promise.reject(error);
     }
 );
+
 
 export default apiClient;

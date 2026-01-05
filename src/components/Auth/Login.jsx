@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import { useNavigate, Link, useLocation } from "react-router-dom";
 
 function Login() {
+    const location = useLocation();
+    const from = location.state?.from?.pathname || "/chat";
+
+
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
@@ -37,7 +41,7 @@ function Login() {
             console.log('Login successful:', response);
 
             // Redirect to chat
-            navigate('/chat');
+            navigate(from, { replace: true });
         } catch (err) {
             console.error('Login error:', err);
 
