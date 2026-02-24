@@ -61,14 +61,15 @@ export default function ChatInterface() {
                 res = await medicalVQAService.sendMessage(sessionId, text, imageFile);
             }
 
-            // simplest: append assistant response directly
-            setMessages((prev) => [
-                ...prev,
-                { role: "assistant", content: res?.response || "(No response)" },
-            ]);
-
-            // optional: if you want perfect sync with backend history, replace messages:
-            // setMessages(toUIMessagesFromSession(res.full_session));
+            // ✅ single source of truth: backend session
+            if (res?.full_session?.conversation_history) {
+                setMessages(toUIMessagesFromSession(res.full_session));
+            } else if (res?.response) {
+                // fallback (only if backend doesn't return full_session)
+                setMessages((prev) => [...prev, { role: "assistant", content: res.response }]);
+            } else {
+                setMessages((prev) => [...prev, { role: "assistant", content: "(No response)" }]);
+            }
 
             await loadHistory();
         } catch (err) {
@@ -76,12 +77,13 @@ export default function ChatInterface() {
             const detail = err?.response?.data?.detail;
             setError(detail || "Failed to send message.");
 
-            // rollback optimistic message if you want:
-            // setMessages((prev) => prev.slice(0, -1));
+            // optional rollback optimistic user message:
+            // setMessages(prev => prev.slice(0, -1));
         } finally {
             setLoading(false);
         }
     };
+
 
     const handleSelectSession = async (sid) => {
         setError("");
@@ -105,7 +107,7 @@ export default function ChatInterface() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+        <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
             <Header />
 
             <div className="flex flex-1">
@@ -127,9 +129,7 @@ export default function ChatInterface() {
                         <MessageList messages={messages} />
                     </div>
 
-                    <div className="border-t border-gray-800">
-                        <MessageInput onSend={handleSend} loading={loading} />
-                    </div>
+                    <MessageInput onSend={handleSend} loading={loading} />
                 </div>
             </div>
         </div>
