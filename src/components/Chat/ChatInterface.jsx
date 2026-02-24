@@ -55,7 +55,7 @@ export default function ChatInterface() {
         // optimistic user message
         setMessages((prev) => [
             ...prev,
-            { role: "user", content: text || "[Image uploaded]" },
+            { role: "user", content: text || "" },
         ]);
 
         setLoading(true);

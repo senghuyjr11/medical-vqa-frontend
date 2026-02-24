@@ -1,6 +1,6 @@
 import React from "react";
-
-const BASE_URL = "http://203.241.246.181:8000";
+import ReactMarkdown from "react-markdown";
+import { API_BASE_URL } from "../../services/api";
 
 export default function MessageList({ messages = [] }) {
     return (
@@ -19,15 +19,10 @@ export default function MessageList({ messages = [] }) {
 
             {messages.map((m, idx) => {
                 const isUser = m.role === "user";
-                // Build full image URL from relative path e.g. "sessions/senghuy/11/..."
-                const imageUrl = m.imagePath
-                    ? `${BASE_URL}/${m.imagePath}`
-                    : null;
+                const imageUrl = m.imagePath ? `${API_BASE_URL}/${m.imagePath}` : null;
 
                 return (
                     <div key={idx} className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
-
-                        {/* Message column — no avatar */}
                         <div className={`flex flex-col gap-1.5 max-w-2xl ${isUser ? "items-end" : "items-start"}`}>
 
                             {/* Image — sharp corners */}
@@ -40,15 +35,30 @@ export default function MessageList({ messages = [] }) {
                             )}
 
                             {/* Text bubble */}
-                            {m.content && (
-                                <div className={`px-4 py-3 rounded-2xl text-base shadow-sm whitespace-pre-wrap leading-relaxed ${
+                            {m.content && m.content !== "[Image Uploaded]" && (
+                                <div className={`px-4 py-3 rounded-2xl text-base shadow-md leading-relaxed ${
                                     isUser
-                                        ? "bg-blue-600 text-white rounded-tr-sm shadow-md"
-                                        : "bg-white border border-slate-200 text-gray-800 rounded-tl-sm shadow-md"
+                                        ? "bg-blue-600 text-white rounded-tr-sm"
+                                        : "bg-white border border-slate-200 text-gray-800 rounded-tl-sm"
                                 }`}>
-                                    {m.content}
+                                    <ReactMarkdown
+                                        components={{
+                                            p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                            a: ({ href, children }) => (
+                                                <a href={href} className="underline opacity-80 hover:opacity-100 break-all" target="_blank" rel="noopener noreferrer">
+                                                    {children}
+                                                </a>
+                                            ),
+                                            ul: ({ children }) => <ul className="list-disc pl-4 space-y-1">{children}</ul>,
+                                            ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1">{children}</ol>,
+                                            li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                                        }}
+                                    >
+                                        {m.content}
+                                    </ReactMarkdown>
                                 </div>
-                            )}
+                                )}
                         </div>
                     </div>
                 );
