@@ -7,9 +7,9 @@ export default function ChatHistory({
                                         onNewChat,
                                     }) {
     return (
-        <div className="w-72 bg-gray-50 border-r border-gray-200 flex flex-col">
+        <div className="w-72 bg-slate-50 border-r border-slate-200 flex flex-col">
             {/* Sidebar header */}
-            <div className="px-4 py-4 border-b border-gray-200 bg-white">
+            <div className="px-4 py-4 border-b border-slate-200 bg-white">
                 <div className="flex items-center justify-between">
                     <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Conversations</h2>
                     <button
@@ -42,7 +42,7 @@ export default function ChatHistory({
                         className={`w-full text-left p-3 rounded-xl transition-all ${
                             c.session_id === activeSessionId
                                 ? "bg-blue-50 border border-blue-200 shadow-sm"
-                                : "bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm"
+                                : "bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm"
                         }`}
                     >
                         <div className={`text-sm font-medium truncate ${

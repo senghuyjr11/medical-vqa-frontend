@@ -32,7 +32,7 @@ export default function MessageInput({ onSend, loading }) {
             <div className="max-w-3xl mx-auto">
 
                 {/* Floating pill input box */}
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
 
                     <input
                         ref={fileRef}

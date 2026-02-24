@@ -43,8 +43,8 @@ export default function MessageList({ messages = [] }) {
                             {m.content && (
                                 <div className={`px-4 py-3 rounded-2xl text-base shadow-sm whitespace-pre-wrap leading-relaxed ${
                                     isUser
-                                        ? "bg-blue-600 text-white rounded-tr-sm"
-                                        : "bg-white border border-gray-200 text-gray-800 rounded-tl-sm"
+                                        ? "bg-blue-600 text-white rounded-tr-sm shadow-md"
+                                        : "bg-white border border-slate-200 text-gray-800 rounded-tl-sm shadow-md"
                                 }`}>
                                     {m.content}
                                 </div>
