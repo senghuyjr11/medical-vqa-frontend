@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/authService";
 
-export default function Header() {
+export default function Header({ leftSlot }) {
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -11,26 +11,28 @@ export default function Header() {
     };
 
     return (
-        <header className="w-full shrink-0 flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shadow-sm">
-            <div className="flex items-center gap-3">
-                {/* Simple medical cross icon */}
-                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 8h-3V5a1 1 0 00-1-1h-6a1 1 0 00-1 1v3H5a1 1 0 00-1 1v6a1 1 0 001 1h3v3a1 1 0 001 1h6a1 1 0 001-1v-3h3a1 1 0 001-1V9a1 1 0 00-1-1z"/>
-                    </svg>
-                </div>
-                <div>
-                    <div className="text-gray-900 font-semibold text-base leading-tight">Medical VQA Assistant</div>
-                    <div className="text-gray-400 text-xs">AI-Powered Clinical Q&A</div>
-                </div>
+        <header className="w-full shrink-0 relative flex items-center px-6 py-4 bg-white border-b border-slate-200">
+
+            {/* Left: sidebar controls passed from parent */}
+            <div className="w-72 flex-shrink-0">
+                {leftSlot}
             </div>
 
-            <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-medium transition-colors"
-            >
-                Sign out
-            </button>
+            {/* Center: title */}
+            <div className="flex-1 flex flex-col items-center">
+                <div className="text-gray-900 font-semibold text-lg leading-tight">Medical VQA Assistant</div>
+                <div className="text-gray-400 text-sm">AI-Powered Clinical Q&A</div>
+            </div>
+
+            {/* Right: sign out */}
+            <div className="w-72 flex-shrink-0 flex justify-end">
+                <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-medium transition-colors"
+                >
+                    Sign out
+                </button>
+            </div>
         </header>
     );
 }

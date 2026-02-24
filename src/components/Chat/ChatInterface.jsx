@@ -115,7 +115,22 @@ export default function ChatInterface() {
 
     return (
         <div className="h-screen bg-slate-100 text-gray-900 flex flex-col overflow-hidden">
-            <Header />
+            <Header
+                leftSlot={
+                    <div className="flex items-center justify-between">
+                        {/* Right: sign out */}
+                        <div className="w-72 flex-shrink-0 flex justify-start">
+                            <button
+                                onClick={handleNewChat}
+                                className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-medium transition-colors"
+                            >
+                                New Chat
+                            </button>
+                        </div>
+
+                    </div>
+                }
+            />
 
             <div className="flex flex-1 overflow-hidden">
                 <ChatHistory
