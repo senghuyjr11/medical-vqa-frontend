@@ -11,8 +11,15 @@ function toUIMessagesFromSession(fullSession) {
     const ui = [];
 
     for (const t of turns) {
-        if (t?.user) ui.push({ role: "user", content: t.user });
-        if (t?.assistant) ui.push({ role: "assistant", content: t.assistant });
+        if (t?.user) ui.push({
+            role: "user",
+            content: t.user,
+            imagePath: t.image_path || null  // ← add this
+        });
+        if (t?.assistant) ui.push({
+            role: "assistant",
+            content: t.assistant
+        });
     }
     return ui;
 }
@@ -107,10 +114,10 @@ export default function ChatInterface() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
+        <div className="h-screen bg-gray-50 text-gray-900 flex flex-col overflow-hidden">
             <Header />
 
-            <div className="flex flex-1">
+            <div className="flex flex-1 overflow-hidden">
                 <ChatHistory
                     chats={history}
                     activeSessionId={sessionId}
@@ -118,14 +125,15 @@ export default function ChatInterface() {
                     onNewChat={handleNewChat}
                 />
 
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col overflow-hidden">
                     {error && (
-                        <div className="p-3 bg-red-500/10 border-b border-red-500 text-red-400">
+                        <div className="p-3 bg-red-500/10 border-b border-red-500 text-red-400 text-base">
                             {error}
                         </div>
                     )}
 
-                    <div className="flex-1 overflow-auto">
+                    {/* Only this div scrolls */}
+                    <div className="flex-1 overflow-y-auto">
                         <MessageList messages={messages} />
                     </div>
 

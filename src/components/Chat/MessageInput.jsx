@@ -28,7 +28,7 @@ export default function MessageInput({ onSend, loading }) {
     };
 
     return (
-        <div className="sticky bottom-0 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent pt-6 pb-4 px-4">
+        <div className="sticky bottom-0 pt-0 pb-3 px-4">
             <div className="max-w-3xl mx-auto">
 
                 {/* Floating pill input box */}
@@ -38,6 +38,7 @@ export default function MessageInput({ onSend, loading }) {
                         ref={fileRef}
                         type="file"
                         accept="image/*"
+                        multiple={false}        // ← explicitly single only
                         className="hidden"
                         onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                         disabled={loading}
@@ -74,7 +75,7 @@ export default function MessageInput({ onSend, loading }) {
                         disabled={loading}
                         rows={2}
                         placeholder="Ask a clinical question..."
-                        className="w-full resize-none bg-transparent border-none text-gray-900 placeholder-gray-400 text-sm focus:outline-none disabled:opacity-60 px-4 pt-3 pb-1 max-h-40 overflow-y-auto leading-relaxed block"
+                        className="w-full resize-none bg-transparent border-none text-gray-900 placeholder-gray-400 text-base focus:outline-none disabled:opacity-60 px-4 pt-3 pb-1 max-h-40 overflow-y-auto leading-relaxed block"
                         style={{ fieldSizing: "content" }}
                     />
 
