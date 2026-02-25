@@ -29,7 +29,7 @@ export default function MessageInput({ onSend, loading }) {
 
     return (
         <div className="sticky bottom-0 pt-0 pb-3 px-4">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-4xl mx-auto">
 
                 {/* Floating pill input box */}
                 <div className="bg-white border border-slate-200 rounded-xl shadow-lg focus-within:border-transparent transition-all">

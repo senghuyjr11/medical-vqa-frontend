@@ -4,7 +4,7 @@ import { API_BASE_URL } from "../../services/api";
 
 export default function MessageList({ messages = [] }) {
     return (
-        <div className="p-6 space-y-5 max-w-3xl mx-auto w-full">
+        <div className="p-6 space-y-5 max-w-4xl mx-auto w-full">
             {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-24 text-center">
                     <div className="w-16 h-16 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center mb-4">
@@ -23,7 +23,7 @@ export default function MessageList({ messages = [] }) {
 
                 return (
                     <div key={idx} className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
-                        <div className={`flex flex-col gap-1.5 max-w-2xl ${isUser ? "items-end" : "items-start"}`}>
+                        <div className={`flex flex-col gap-1.5 w-full ${isUser ? "items-end" : "items-start"}`}>
 
                             {/* Image — sharp corners */}
                             {imageUrl && (
@@ -36,23 +36,25 @@ export default function MessageList({ messages = [] }) {
 
                             {/* Text bubble */}
                             {m.content && m.content !== "[Image Uploaded]" && (
-                                <div className={`px-4 py-3 rounded-xl text-base shadow-md leading-relaxed ${
+                                <div className={`px-4 py-3 rounded-2xl text-base shadow-md leading-relaxed ${
                                     isUser
-                                        ? "bg-teal-600 text-white rounded-tr-sm"
-                                        : "bg-white border border-slate-200 text-gray-800 rounded-tl-sm"
+                                        ? "bg-teal-600 text-white rounded-xl max-w-[80%]"
+                                        : "bg-white border border-slate-200 text-gray-800 rounded-xl max-w-full"
                                 }`}>
                                     <ReactMarkdown
                                         components={{
-                                            p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                                            p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
                                             strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                            em: ({ children }) => <em className="italic">{children}</em>,
                                             a: ({ href, children }) => (
                                                 <a href={href} className="underline opacity-80 hover:opacity-100 break-all" target="_blank" rel="noopener noreferrer">
                                                     {children}
                                                 </a>
                                             ),
-                                            ul: ({ children }) => <ul className="list-disc pl-4 space-y-1">{children}</ul>,
-                                            ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1">{children}</ol>,
-                                            li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                                            ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 my-2">{children}</ul>,
+                                            ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 my-2">{children}</ol>,
+                                            li: ({ children }) => <li className="leading-relaxed mb-1">{children}</li>,
+                                            hr: () => <hr className="my-3 border-slate-200" />,
                                         }}
                                     >
                                         {m.content}
