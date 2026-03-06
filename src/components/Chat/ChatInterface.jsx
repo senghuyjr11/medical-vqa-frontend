@@ -87,7 +87,6 @@ export default function ChatInterface() {
             setError(detail || "Failed to send message.");
 
             // optional rollback optimistic user message:
-            // setMessages(prev => prev.slice(0, -1));
         } finally {
             setLoading(false);
         }
