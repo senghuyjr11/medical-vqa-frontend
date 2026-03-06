@@ -1,8 +1,71 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { API_BASE_URL } from "../../services/api";
 
-export default function MessageList({ messages = [] }) {
+export default function MessageList({ messages = [], responseKey = null }) {
+    const bottomRef = useRef(null);
+    const [typedText, setTypedText] = useState(null);
+    const intervalRef = useRef(null);
+
+    // Scroll to bottom when messages change
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    // Typewriter animation when a new API response arrives
+    useEffect(() => {
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+
+        if (!responseKey) {
+            setTimeout(() => setTypedText(null), 0);
+            return;
+        }
+
+        const lastAssistantMsg = [...messages].reverse().find(m => m.role === "assistant");
+        const fullText = lastAssistantMsg?.content || "";
+        if (!fullText) { setTimeout(() => setTypedText(null), 0); return; }
+
+        // Scroll to bottom when response first arrives
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+
+        // Defer setState to avoid synchronous setState-in-effect warning
+        const startId = setTimeout(() => {
+            let charIndex = 0;
+            setTypedText("");
+
+            intervalRef.current = setInterval(() => {
+                charIndex = Math.min(charIndex + 5, fullText.length);
+                setTypedText(fullText.slice(0, charIndex));
+
+                // Smart scroll: only follow if user is near the bottom
+                const container = bottomRef.current?.closest("[data-scroll-container]");
+                if (container) {
+                    const { scrollTop, scrollHeight, clientHeight } = container;
+                    if (scrollHeight - scrollTop - clientHeight < 150) {
+                        bottomRef.current?.scrollIntoView({ behavior: "instant" });
+                    }
+                }
+
+                if (charIndex >= fullText.length) {
+                    clearInterval(intervalRef.current);
+                    intervalRef.current = null;
+                }
+            }, 16);
+        }, 0);
+
+        return () => {
+            clearTimeout(startId);
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        };
+    }, [responseKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const lastAssistantIdx = responseKey !== null
+        ? messages.reduce((acc, m, i) => m.role === "assistant" ? i : acc, -1)
+        : -1;
+
     return (
         <div className="p-6 space-y-5 max-w-4xl mx-auto w-full">
             {messages.length === 0 && (
@@ -20,9 +83,14 @@ export default function MessageList({ messages = [] }) {
             {messages.map((m, idx) => {
                 const isUser = m.role === "user";
                 const imageUrl = m.imagePath ? `${API_BASE_URL}/${m.imagePath}` : null;
+                const isAnimating = idx === lastAssistantIdx && typedText !== null;
+                const content = isAnimating ? typedText : m.content;
 
                 return (
-                    <div key={idx} className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+                    <div
+                        key={idx}
+                        className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"} ${isAnimating ? "animate-fade-slide-in" : ""}`}
+                    >
                         <div className={`flex flex-col gap-1.5 w-full ${isUser ? "items-end" : "items-start"}`}>
 
                             {/* Image — sharp corners */}
@@ -35,7 +103,7 @@ export default function MessageList({ messages = [] }) {
                             )}
 
                             {/* Text bubble */}
-                            {m.content && m.content !== "[Image Uploaded]" && (
+                            {content && content !== "[Image Uploaded]" && (
                                 <div className={`px-4 py-3 rounded-2xl text-base shadow-md leading-relaxed ${
                                     isUser
                                         ? "bg-teal-600 text-white rounded-xl max-w-[80%]"
@@ -57,7 +125,7 @@ export default function MessageList({ messages = [] }) {
                                             hr: () => <hr className="my-3 border-slate-200" />,
                                         }}
                                     >
-                                        {m.content}
+                                        {content}
                                     </ReactMarkdown>
                                 </div>
                                 )}
@@ -65,6 +133,7 @@ export default function MessageList({ messages = [] }) {
                     </div>
                 );
             })}
+            <div ref={bottomRef} />
         </div>
     );
 }

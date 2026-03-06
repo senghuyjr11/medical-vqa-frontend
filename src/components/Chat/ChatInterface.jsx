@@ -30,6 +30,7 @@ export default function ChatInterface() {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [responseKey, setResponseKey] = useState(null);
 
     const loadHistory = async () => {
         try {
@@ -78,6 +79,7 @@ export default function ChatInterface() {
                 setMessages((prev) => [...prev, { role: "assistant", content: "(No response)" }]);
             }
 
+            setResponseKey(Date.now());
             await loadHistory();
         } catch (err) {
             console.error("send error:", err);
@@ -95,6 +97,7 @@ export default function ChatInterface() {
     const handleSelectSession = async (sid) => {
         setError("");
         setLoading(true);
+        setResponseKey(null);
         try {
             const session = await medicalVQAService.getSession(sid);
             setSessionId(sid);
@@ -111,6 +114,7 @@ export default function ChatInterface() {
         setSessionId(null);
         setMessages([]);
         setError("");
+        setResponseKey(null);
     };
 
     return (
@@ -148,8 +152,8 @@ export default function ChatInterface() {
                     )}
 
                     {/* Only this div scrolls */}
-                    <div className="flex-1 overflow-y-auto">
-                        <MessageList messages={messages} />
+                    <div className="flex-1 overflow-y-auto" data-scroll-container>
+                        <MessageList messages={messages} responseKey={responseKey} />
                     </div>
 
                     <MessageInput onSend={handleSend} loading={loading} />
