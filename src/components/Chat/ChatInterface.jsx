@@ -110,6 +110,20 @@ export default function ChatInterface() {
         }
     };
 
+    const handleDeleteSession = async (sid) => {
+        try {
+            await medicalVQAService.deleteSession(sid);
+            if (sid === sessionId) {
+                setSessionId(null);
+                setMessages([]);
+                setResponseKey(null);
+            }
+            await loadHistory();
+        } catch (err) {
+            console.error("delete session error:", err);
+        }
+    };
+
     const handleNewChat = () => {
         setSessionId(null);
         setMessages([]);
@@ -142,6 +156,7 @@ export default function ChatInterface() {
                     activeSessionId={sessionId}
                     onSelectSession={handleSelectSession}
                     onNewChat={handleNewChat}
+                    onDeleteSession={handleDeleteSession}
                 />
 
                 <div className="flex-1 flex flex-col overflow-hidden">
