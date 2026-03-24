@@ -1,16 +1,53 @@
-# React + Vite
+# Medical VQA Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React frontend for the Agentic Multimodal Medical QA system.
 
-Currently, two official plugins are available:
+This app gives users a clean chat interface to sign in, upload a medical image, ask questions in natural language, and continue the conversation across multiple turns. It connects to the FastAPI backend and shows responses, uploaded images, and chat history in one place.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## What it does
 
-## React Compiler
+- User registration and login with JWT authentication
+- Protected chat interface
+- Send text questions with or without a medical image
+- Continue existing chat sessions
+- View and delete previous conversations
+- Render model responses with markdown formatting
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Stack
 
-## Expanding the ESLint configuration
+- React
+- Vite
+- React Router
+- Axios
+- Tailwind CSS
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Backend connection
+
+Set the backend API URL with:
+
+```bash
+VITE_API_URL=http://localhost:8000
+```
+
+If `VITE_API_URL` is not provided, the app uses the fallback URL defined in the frontend config.
+
+Backend repository:
+[agentic_multimodal_qa](https://github.com/senghuyjr11/agentic_multimodal_qa.git)
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+npm run preview
+```
+
+## Notes
+
+This frontend is built to work with the backend medical QA system. Authentication, chat history, image upload, and multi-turn conversation all depend on the backend API being available.
