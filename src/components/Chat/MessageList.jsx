@@ -82,7 +82,7 @@ export default function MessageList({ messages = [], responseKey = null }) {
 
             {messages.map((m, idx) => {
                 const isUser = m.role === "user";
-                const imageUrl = m.imagePath ? `${API_BASE_URL}/${m.imagePath}` : null;
+                const imageUrl = m.localImageUrl || (m.imagePath ? `${API_BASE_URL}/${m.imagePath}` : null);
                 const isAnimating = idx === lastAssistantIdx && typedText !== null;
                 const content = isAnimating ? typedText : m.content;
 

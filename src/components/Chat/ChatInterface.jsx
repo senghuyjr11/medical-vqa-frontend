@@ -31,6 +31,7 @@ export default function ChatInterface() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [responseKey, setResponseKey] = useState(null);
+    const [loadingSeconds, setLoadingSeconds] = useState(0);
 
     const loadHistory = async () => {
         try {
@@ -45,6 +46,20 @@ export default function ChatInterface() {
         loadHistory();
     }, []);
 
+    useEffect(() => {
+        if (!loading) {
+            setLoadingSeconds(0);
+            return;
+        }
+
+        const startTime = Date.now();
+        const intervalId = setInterval(() => {
+            setLoadingSeconds(Math.floor((Date.now() - startTime) / 1000));
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, [loading]);
+
     const handleSend = async ({ text, imageFile }) => {
         setError("");
 
@@ -53,10 +68,16 @@ export default function ChatInterface() {
             return;
         }
 
+        const optimisticImageUrl = imageFile ? URL.createObjectURL(imageFile) : null;
+
         // optimistic user message
         setMessages((prev) => [
             ...prev,
-            { role: "user", content: text || "" },
+            {
+                role: "user",
+                content: text || "",
+                localImageUrl: optimisticImageUrl,
+            },
         ]);
 
         setLoading(true);
@@ -88,6 +109,9 @@ export default function ChatInterface() {
 
             // optional rollback optimistic user message:
         } finally {
+            if (optimisticImageUrl) {
+                URL.revokeObjectURL(optimisticImageUrl);
+            }
             setLoading(false);
         }
     };
@@ -170,7 +194,11 @@ export default function ChatInterface() {
                         <MessageList messages={messages} responseKey={responseKey} />
                     </div>
 
-                    <MessageInput onSend={handleSend} loading={loading} />
+                    <MessageInput
+                        onSend={handleSend}
+                        loading={loading}
+                        loadingSeconds={loadingSeconds}
+                    />
                 </div>
             </div>
         </div>
