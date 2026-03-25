@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { API_BASE_URL } from "../../services/api";
 
-export default function MessageList({ messages = [], responseKey = null }) {
+export default function MessageList({ messages = [], responseKey = null, loading = false }) {
     const bottomRef = useRef(null);
     const [typedText, setTypedText] = useState(null);
     const intervalRef = useRef(null);
@@ -66,6 +66,13 @@ export default function MessageList({ messages = [], responseKey = null }) {
         ? messages.reduce((acc, m, i) => m.role === "assistant" ? i : acc, -1)
         : -1;
 
+    const scanningImageIdx = loading
+        ? messages.reduce((acc, m, i) => {
+            const hasImage = Boolean(m.localImageUrl || m.imagePath);
+            return m.role === "user" && hasImage ? i : acc;
+        }, -1)
+        : -1;
+
     return (
         <div className="p-6 space-y-5 max-w-4xl mx-auto w-full">
             {messages.length === 0 && (
@@ -84,6 +91,7 @@ export default function MessageList({ messages = [], responseKey = null }) {
                 const isUser = m.role === "user";
                 const imageUrl = m.localImageUrl || (m.imagePath ? `${API_BASE_URL}/${m.imagePath}` : null);
                 const isAnimating = idx === lastAssistantIdx && typedText !== null;
+                const isScanning = idx === scanningImageIdx;
                 const content = isAnimating ? typedText : m.content;
 
                 return (
@@ -95,11 +103,22 @@ export default function MessageList({ messages = [], responseKey = null }) {
 
                             {/* Image — sharp corners */}
                             {imageUrl && (
-                                <img
-                                    src={imageUrl}
-                                    alt="uploaded medical"
-                                    className="rounded-none object-contain max-h-64 shadow-sm"
-                                />
+                                <div className={`relative overflow-hidden ${isScanning ? "scan-frame" : ""}`}>
+                                    <img
+                                        src={imageUrl}
+                                        alt="uploaded medical"
+                                        className="rounded-none object-contain max-h-64 shadow-sm"
+                                    />
+                                    {isScanning && (
+                                        <>
+                                            <div className="pointer-events-none absolute inset-0 bg-teal-500/10" />
+                                            <div className="pointer-events-none absolute inset-x-0 top-0 h-14 scan-sweep" />
+                                            <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-white/92 px-3 py-1 text-[11px] font-medium text-teal-700 shadow-sm">
+                                                Scanning image...
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             )}
 
                             {/* Text bubble */}

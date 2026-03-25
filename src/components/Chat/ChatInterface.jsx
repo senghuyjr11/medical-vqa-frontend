@@ -234,7 +234,7 @@ export default function ChatInterface() {
 
                     {/* Only this div scrolls */}
                     <div className="flex-1 overflow-y-auto" data-scroll-container>
-                        <MessageList messages={messages} responseKey={responseKey} />
+                        <MessageList messages={messages} responseKey={responseKey} loading={loading} />
                     </div>
 
                     <MessageInput
