@@ -28,6 +28,8 @@ export default function ChatInterface() {
     const [sessionId, setSessionId] = useState(null);
     const [messages, setMessages] = useState([]);
     const [history, setHistory] = useState([]);
+    const [memoryStatus, setMemoryStatus] = useState(null);
+    const [summaryNotice, setSummaryNotice] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [responseKey, setResponseKey] = useState(null);
@@ -39,6 +41,20 @@ export default function ChatInterface() {
             setHistory(data?.chats || []);
         } catch (e) {
             console.error("getChatHistory error:", e);
+        }
+    };
+
+    const loadMemoryStatus = async (sid) => {
+        if (!sid) {
+            setMemoryStatus(null);
+            return;
+        }
+
+        try {
+            const data = await medicalVQAService.getMemoryStatus(sid);
+            setMemoryStatus(data);
+        } catch (e) {
+            console.error("getMemoryStatus error:", e);
         }
     };
 
@@ -100,6 +116,21 @@ export default function ChatInterface() {
                 setMessages((prev) => [...prev, { role: "assistant", content: "(No response)" }]);
             }
 
+            const nextSessionId = res?.session_id || sessionId;
+            const nextMemoryStatus = res?.metadata?.memory || null;
+            if (nextMemoryStatus) {
+                setMemoryStatus(nextMemoryStatus);
+            } else if (nextSessionId) {
+                await loadMemoryStatus(nextSessionId);
+            }
+
+            if (nextMemoryStatus?.summary_updated) {
+                const count = nextMemoryStatus.compression_count ?? 1;
+                setSummaryNotice(`Earlier conversation was compressed to keep the chat responsive. Total compressions: ${count}.`);
+            } else {
+                setSummaryNotice("");
+            }
+
             setResponseKey(Date.now());
             await loadHistory();
         } catch (err) {
@@ -125,6 +156,8 @@ export default function ChatInterface() {
             const session = await medicalVQAService.getSession(sid);
             setSessionId(sid);
             setMessages(toUIMessagesFromSession(session));
+            setSummaryNotice("");
+            await loadMemoryStatus(sid);
         } catch (err) {
             console.error("load session error:", err);
             setError("Failed to load session.");
@@ -140,6 +173,8 @@ export default function ChatInterface() {
                 setSessionId(null);
                 setMessages([]);
                 setResponseKey(null);
+                setMemoryStatus(null);
+                setSummaryNotice("");
             }
             await loadHistory();
         } catch (err) {
@@ -152,6 +187,8 @@ export default function ChatInterface() {
         setMessages([]);
         setError("");
         setResponseKey(null);
+        setMemoryStatus(null);
+        setSummaryNotice("");
     };
 
     return (
@@ -189,6 +226,12 @@ export default function ChatInterface() {
                         </div>
                     )}
 
+                    {summaryNotice && (
+                        <div className="px-4 py-3 border-b border-amber-200 bg-amber-50 text-amber-800 text-sm">
+                            {summaryNotice}
+                        </div>
+                    )}
+
                     {/* Only this div scrolls */}
                     <div className="flex-1 overflow-y-auto" data-scroll-container>
                         <MessageList messages={messages} responseKey={responseKey} />
@@ -198,6 +241,7 @@ export default function ChatInterface() {
                         onSend={handleSend}
                         loading={loading}
                         loadingSeconds={loadingSeconds}
+                        memoryStatus={memoryStatus}
                     />
                 </div>
             </div>

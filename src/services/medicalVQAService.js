@@ -42,6 +42,21 @@ export const medicalVQAService = {
         return response.data;
     },
 
+    getMemoryStatus: async (sessionId) => {
+        const response = await apiClient.get(`/chat/${sessionId}/memory-status`);
+        return response.data;
+    },
+
+    getSessionSummary: async (sessionId) => {
+        const response = await apiClient.get(`/chat/${sessionId}/summary`);
+        return response.data;
+    },
+
+    summarizeSession: async (sessionId) => {
+        const response = await apiClient.post(`/chat/${sessionId}/summarize`);
+        return response.data;
+    },
+
     // Delete session
     deleteSession: async (sessionId) => {
         const response = await apiClient.delete(`/chat/${sessionId}`);

@@ -19,9 +19,12 @@ export default function Header({ leftSlot }) {
             </div>
 
             {/* Center: title */}
-            <div className="flex-1 flex flex-col items-center">
-                <div className="text-gray-900 font-semibold text-lg leading-tight">Medical VQA Assistant</div>
-                <div className="text-gray-400 text-sm">AI-Powered Clinical Q&A</div>
+            <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
+                <div className="flex flex-col items-center min-w-0">
+                    <div className="text-gray-900 font-semibold text-lg leading-tight">Medical VQA Assistant</div>
+                    <div className="text-gray-400 text-sm">AI-Powered Clinical Q&A</div>
+                </div>
+
             </div>
 
             {/* Right: sign out */}

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 
-export default function MessageInput({ onSend, loading, loadingSeconds = 0 }) {
+export default function MessageInput({ onSend, loading, loadingSeconds = 0, memoryStatus = null }) {
     const [text, setText] = useState("");
     const [imageFile, setImageFile] = useState(null);
     const fileRef = useRef(null);
@@ -130,9 +130,33 @@ export default function MessageInput({ onSend, loading, loadingSeconds = 0 }) {
                     </div>
                 </div>
 
-                <p className="text-xs text-gray-400 mt-2 text-center">
-                    For clinical decision support only — not a substitute for professional medical judgment
-                </p>
+                <div className="mt-2 flex items-center justify-center gap-3 flex-wrap">
+                    <p className="text-xs text-slate-400">
+                        Clinical support only. Verify with professional judgment.
+                    </p>
+
+                    {memoryStatus && (
+                        <div className="flex items-center gap-2">
+                            {memoryStatus.compression_count > 0 && (
+                                <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium whitespace-nowrap text-slate-500">
+                                    {memoryStatus.compression_count}x compressed
+                                </div>
+                            )}
+                            <div
+                                className={`inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-medium whitespace-nowrap ${
+                                    memoryStatus.percent_left > 40
+                                        ? "border-slate-200 bg-slate-50 text-slate-500"
+                                        : memoryStatus.percent_left > 20
+                                            ? "border-stone-200 bg-stone-50 text-stone-500"
+                                            : "border-rose-200 bg-rose-50 text-rose-500"
+                                }`}
+                                title={`${memoryStatus.percent_left}% left before the conversation may be compressed`}
+                            >
+                                {memoryStatus.percent_left}% left
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
