@@ -1,11 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { API_BASE_URL } from "../../services/api";
+import apiClient from "../../services/api";
 
-export default function MessageList({ messages = [], responseKey = null, loading = false }) {
+export default function MessageList({
+    messages = [],
+    responseKey = null,
+    loading = false,
+    loadingHasImage = false,
+}) {
     const bottomRef = useRef(null);
     const [typedText, setTypedText] = useState(null);
     const intervalRef = useRef(null);
+    const [remoteImageUrls, setRemoteImageUrls] = useState({});
 
     // Scroll to bottom when messages change
     useEffect(() => {
@@ -62,11 +68,62 @@ export default function MessageList({ messages = [], responseKey = null, loading
         };
     }, [responseKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        let isCancelled = false;
+        const blobUrlsToRevoke = [];
+
+        const fetchRemoteImages = async () => {
+            const remoteMessages = messages
+                .map((message, index) => ({ message, index }))
+                .filter(({ message }) => !message.localImageUrl && message.imagePath);
+
+            if (remoteMessages.length === 0) {
+                setRemoteImageUrls((prev) => {
+                    Object.values(prev).forEach((url) => URL.revokeObjectURL(url));
+                    return {};
+                });
+                return;
+            }
+
+            const nextUrls = {};
+
+            for (const { message, index } of remoteMessages) {
+                try {
+                    const normalizedPath = `/${message.imagePath.replace(/^\/+/, "")}`;
+                    const response = await apiClient.get(normalizedPath, {
+                        responseType: "blob",
+                    });
+
+                    const blobUrl = URL.createObjectURL(response.data);
+                    blobUrlsToRevoke.push(blobUrl);
+                    nextUrls[index] = blobUrl;
+                } catch (error) {
+                    console.error("load image error:", error);
+                }
+            }
+
+            if (!isCancelled) {
+                setRemoteImageUrls((prev) => {
+                    Object.values(prev).forEach((url) => URL.revokeObjectURL(url));
+                    return nextUrls;
+                });
+            } else {
+                blobUrlsToRevoke.forEach((url) => URL.revokeObjectURL(url));
+            }
+        };
+
+        fetchRemoteImages();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [messages]);
+
     const lastAssistantIdx = responseKey !== null
         ? messages.reduce((acc, m, i) => m.role === "assistant" ? i : acc, -1)
         : -1;
 
-    const scanningImageIdx = loading
+    const scanningImageIdx = loading && loadingHasImage
         ? messages.reduce((acc, m, i) => {
             const hasImage = Boolean(m.localImageUrl || m.imagePath);
             return m.role === "user" && hasImage ? i : acc;
@@ -89,7 +146,7 @@ export default function MessageList({ messages = [], responseKey = null, loading
 
             {messages.map((m, idx) => {
                 const isUser = m.role === "user";
-                const imageUrl = m.localImageUrl || (m.imagePath ? `${API_BASE_URL}/${m.imagePath}` : null);
+                const imageUrl = m.localImageUrl || remoteImageUrls[idx] || null;
                 const isAnimating = idx === lastAssistantIdx && typedText !== null;
                 const isScanning = idx === scanningImageIdx;
                 const content = isAnimating ? typedText : m.content;

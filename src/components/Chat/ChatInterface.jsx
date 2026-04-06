@@ -31,6 +31,7 @@ export default function ChatInterface() {
     const [memoryStatus, setMemoryStatus] = useState(null);
     const [summaryNotice, setSummaryNotice] = useState("");
     const [loading, setLoading] = useState(false);
+    const [loadingHasImage, setLoadingHasImage] = useState(false);
     const [error, setError] = useState("");
     const [responseKey, setResponseKey] = useState(null);
     const [loadingSeconds, setLoadingSeconds] = useState(0);
@@ -85,6 +86,7 @@ export default function ChatInterface() {
         }
 
         const optimisticImageUrl = imageFile ? URL.createObjectURL(imageFile) : null;
+        setLoadingHasImage(Boolean(imageFile));
 
         // optimistic user message
         setMessages((prev) => [
@@ -144,6 +146,7 @@ export default function ChatInterface() {
                 URL.revokeObjectURL(optimisticImageUrl);
             }
             setLoading(false);
+            setLoadingHasImage(false);
         }
     };
 
@@ -234,7 +237,12 @@ export default function ChatInterface() {
 
                     {/* Only this div scrolls */}
                     <div className="flex-1 overflow-y-auto" data-scroll-container>
-                        <MessageList messages={messages} responseKey={responseKey} loading={loading} />
+                        <MessageList
+                            messages={messages}
+                            responseKey={responseKey}
+                            loading={loading}
+                            loadingHasImage={loadingHasImage}
+                        />
                     </div>
 
                     <MessageInput
