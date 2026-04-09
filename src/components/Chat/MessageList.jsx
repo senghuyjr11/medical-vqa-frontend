@@ -2,11 +2,27 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import apiClient from "../../services/api";
 
+function formatExaminationTime(totalSeconds) {
+    const seconds = Number(totalSeconds);
+    if (!Number.isFinite(seconds) || seconds < 0) {
+        return null;
+    }
+
+    if (seconds < 60) {
+        return `${seconds.toFixed(seconds < 10 ? 1 : 0)} sec`;
+    }
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.round(seconds % 60);
+    return `${minutes}m ${remainingSeconds}s`;
+}
+
 export default function MessageList({
     messages = [],
     responseKey = null,
     loading = false,
     loadingHasImage = false,
+    loadingSeconds = 0,
 }) {
     const bottomRef = useRef(null);
     const [typedText, setTypedText] = useState(null);
@@ -150,6 +166,12 @@ export default function MessageList({
                 const isAnimating = idx === lastAssistantIdx && typedText !== null;
                 const isScanning = idx === scanningImageIdx;
                 const content = isAnimating ? typedText : m.content;
+                const examinationTimeLabel = formatExaminationTime(m.examinationSeconds);
+                const imageStatusLabel = isScanning
+                    ? `Scanning Image... ${loadingSeconds}s`
+                    : examinationTimeLabel
+                        ? `Scanned time: ${examinationTimeLabel}`
+                        : null;
 
                 return (
                     <div
@@ -160,20 +182,28 @@ export default function MessageList({
 
                             {/* Image — sharp corners */}
                             {imageUrl && (
-                                <div className={`relative overflow-hidden ${isScanning ? "scan-frame" : ""}`}>
-                                    <img
-                                        src={imageUrl}
-                                        alt="uploaded medical"
-                                        className="rounded-none object-contain max-h-64 shadow-sm"
-                                    />
-                                    {isScanning && (
-                                        <>
-                                            <div className="pointer-events-none absolute inset-0 bg-teal-500/10" />
-                                            <div className="pointer-events-none absolute inset-x-0 top-0 h-14 scan-sweep" />
-                                            <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-white/92 px-3 py-1 text-[11px] font-medium text-teal-700 shadow-sm">
-                                                Scanning image...
-                                            </div>
-                                        </>
+                                <div className={`flex flex-col gap-0.5 ${isUser ? "items-end" : "items-start"}`}>
+                                    <div className={`relative overflow-hidden ${isScanning ? "scan-frame" : ""}`}>
+                                        <img
+                                            src={imageUrl}
+                                            alt="uploaded medical"
+                                            className="rounded-none object-contain max-h-64 shadow-sm"
+                                        />
+                                        {isScanning && (
+                                            <>
+                                                <div className="pointer-events-none absolute inset-0 bg-teal-500/10" />
+                                                <div className="pointer-events-none absolute inset-x-0 top-0 h-14 scan-sweep" />
+                                            </>
+                                        )}
+                                    </div>
+                                    {imageStatusLabel && (
+                                        <p
+                                            className={`mt-0.5 text-xs italic text-slate-500 transition-all duration-300 ${
+                                                isScanning ? "opacity-100 translate-y-0" : "opacity-100 translate-y-0 animate-fade-slide-in"
+                                            }`}
+                                        >
+                                            {imageStatusLabel}
+                                        </p>
                                     )}
                                 </div>
                             )}

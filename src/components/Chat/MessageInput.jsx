@@ -101,14 +101,6 @@ export default function MessageInput({ onSend, loading, loadingSeconds = 0, memo
                         </button>
 
                         <div className="flex items-center gap-3">
-                            {loading && (
-                                <div className="flex items-center gap-2 text-xs text-teal-700">
-                                    <span className="inline-flex h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
-                                    <span>Interpreting the findings...</span>
-                                    <span className="font-medium text-teal-900">{loadingSeconds}s</span>
-                                </div>
-                            )}
-
                             <button
                                 type="button"
                                 onClick={submit}

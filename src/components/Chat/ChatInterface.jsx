@@ -6,6 +6,18 @@ import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import Header from "../Layout/Header.jsx";
 
+function extractTotalSeconds(turn) {
+    const candidates = [
+        turn?.meta?.total_seconds,
+        turn?.metadata?.total_seconds,
+        turn?.meta_json?.total_seconds,
+        turn?.image_meta?.total_seconds,
+    ];
+
+    const match = candidates.find((value) => Number.isFinite(Number(value)));
+    return match === undefined ? null : Number(match);
+}
+
 function toUIMessagesFromSession(fullSession) {
     const turns = fullSession?.conversation_history || [];
     const ui = [];
@@ -14,7 +26,8 @@ function toUIMessagesFromSession(fullSession) {
         if (t?.user) ui.push({
             role: "user",
             content: t.user,
-            imagePath: t.image_path || null  // ← add this
+            imagePath: t.image_path || null,
+            examinationSeconds: extractTotalSeconds(t),
         });
         if (t?.assistant) ui.push({
             role: "assistant",
@@ -101,15 +114,30 @@ export default function ChatInterface() {
         setLoading(true);
         try {
             let res;
+            let nextSessionId = sessionId;
             if (!sessionId) {
                 res = await medicalVQAService.startNewChat(text, imageFile);
-                setSessionId(res.session_id);
+                nextSessionId = res.session_id;
+                setSessionId(nextSessionId);
             } else {
                 res = await medicalVQAService.sendMessage(sessionId, text, imageFile);
+                nextSessionId = res?.session_id || sessionId;
             }
 
-            // ✅ single source of truth: backend session
-            if (res?.full_session?.conversation_history) {
+            let latestSession = res?.full_session || null;
+
+            // Refresh from persisted session so turn-level meta JSON like total_seconds is available.
+            if (nextSessionId) {
+                try {
+                    latestSession = await medicalVQAService.getSession(nextSessionId);
+                } catch (sessionErr) {
+                    console.error("refresh session after send error:", sessionErr);
+                }
+            }
+
+            if (latestSession?.conversation_history) {
+                setMessages(toUIMessagesFromSession(latestSession));
+            } else if (res?.full_session?.conversation_history) {
                 setMessages(toUIMessagesFromSession(res.full_session));
             } else if (res?.response) {
                 // fallback (only if backend doesn't return full_session)
@@ -118,7 +146,6 @@ export default function ChatInterface() {
                 setMessages((prev) => [...prev, { role: "assistant", content: "(No response)" }]);
             }
 
-            const nextSessionId = res?.session_id || sessionId;
             const nextMemoryStatus = res?.metadata?.memory || null;
             if (nextMemoryStatus) {
                 setMemoryStatus(nextMemoryStatus);
@@ -242,6 +269,7 @@ export default function ChatInterface() {
                             responseKey={responseKey}
                             loading={loading}
                             loadingHasImage={loadingHasImage}
+                            loadingSeconds={loadingSeconds}
                         />
                     </div>
 
